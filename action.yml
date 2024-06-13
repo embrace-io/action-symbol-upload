@@ -1,0 +1,56 @@
+name: "Upload Symbols"
+description: "Upload symbols for your application to Embrace."
+branding:
+  icon: "upload-cloud"
+  color: "yellow"
+inputs:
+  app_id:
+    description: "Embrace app identifier (5 characters)"
+    required: true
+  api_token:
+    description: "Embrace symbol upload API token (32 hex characters), see https://dash.embrace.io/settings/organization/api"
+    required: true
+  tool_version:
+    description: "Version for embrace_support.zip tool"
+    required: false
+    default: "20240410.2"
+runs:
+  # https://docs.github.com/en/actions/creating-actions/creating-a-composite-action
+  using: "composite"
+  steps:
+    - name: Download embrace_support.zip
+      env:
+        SUPPORT_TOOL: "embrace_support-${{ inputs.tool_version }}"
+      run: |
+        curl -s -L https://github.com/embrace-io/action-symbol-upload/releases/download/${{ env.SUPPORT_TOOL }}/${{ env.SUPPORT_TOOL }}.zip -o ${{ env.SUPPORT_TOOL }}.zip
+        curl -s -L https://github.com/embrace-io/action-symbol-upload/releases/download/${{ env.SUPPORT_TOOL }}/${{ env.SUPPORT_TOOL }}.zip.sha256 -o ${{ env.SUPPORT_TOOL }}.zip.sha256
+      shell: bash
+
+    - name: Verify and extract embrace_support.zip
+      env:
+        SUPPORT_TOOL: "embrace_support-${{ inputs.tool_version }}"
+      run: |
+        if /usr/bin/shasum -a 256 -c ${{ env.SUPPORT_TOOL }}.zip.sha256; then
+          unzip ${{ env.SUPPORT_TOOL }}.zip
+        else
+          echo "Checksum verification failed, aborting."
+          exit 1
+        fi
+      shell: bash
+
+    # https://embrace.io/docs/ios/open-source/symbolicating-crash-reports/
+    - name: Upload dSYM symbols
+      env:
+        EMBRACE_APP: "${{ inputs.app_id }}"
+        EMBRACE_API_TOKEN: "${{ inputs.api_token }}"
+        EMBRACE_DEBUG_DSYM: "1"
+        EMBRACE_LOG_LEVEL: "info"
+        BUILD_ROOT: "${{ github.workspace }}"
+      run: |
+        for dir in $(find . -type d -name \*.dSYM); do
+          for dsym_file in "$dir"/Contents/Resources/DWARF/*; do
+            echo Running ./upload --dsym "$dsym_file"
+            ./upload --dsym "$dsym_file"
+          done
+        done
+      shell: bash
