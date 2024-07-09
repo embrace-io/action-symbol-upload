@@ -1,4 +1,4 @@
-name: "Upload Symbols"
+name: "Upload Symbols to Embrace"
 description: "Upload symbols for your application to Embrace."
 branding:
   icon: "upload-cloud"
