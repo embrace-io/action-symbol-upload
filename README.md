@@ -14,6 +14,8 @@ or hardcode it in the workflow directly.
 For security reasons, you should store the API key in your repository (or organization) secrets; see [GitHub documentation](https://docs.github.com/en/actions/security-guides/using-secrets-in-github-actions) 
 for detailed information on how to use GitHub Secrets.
 
+Also, make sure you enable dSYM generation as described here: https://embrace.io/docs/ios/faq/#dsym-generation-not-enabled
+
 ## Basic usage
 
 ```yaml
