@@ -13,25 +13,36 @@ inputs:
   tool_version:
     description: "Version for embrace_support.zip tool"
     required: false
-    default: "20240410.2"
+    default: "latest"
 runs:
   # https://docs.github.com/en/actions/creating-actions/creating-a-composite-action
   using: "composite"
   steps:
+    - name: Determine embrace_support version
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: |
+        if [ '${{ inputs.tool_version }}' == 'latest' ]; then
+          version=$(gh release list --repo embrace-io/action-symbol-upload --json tagName --jq '.[] | select(.tagName | startswith("embrace_support-")) | .tagName' --order desc | head -1)
+        else
+          version='${{ inputs.tool_version }}'
+        fi
+
+        echo "Using tool version ${version}"
+        echo "SUPPORT_TOOL=${version}" >> $GITHUB_ENV
+      shell: bash
+
     - name: Download embrace_support.zip
       env:
-        SUPPORT_TOOL: "embrace_support-${{ inputs.tool_version }}"
+        GH_TOKEN: ${{ github.token }}
       run: |
-        curl -s -L https://github.com/embrace-io/action-symbol-upload/releases/download/${{ env.SUPPORT_TOOL }}/${{ env.SUPPORT_TOOL }}.zip -o ${{ env.SUPPORT_TOOL }}.zip
-        curl -s -L https://github.com/embrace-io/action-symbol-upload/releases/download/${{ env.SUPPORT_TOOL }}/${{ env.SUPPORT_TOOL }}.zip.sha256 -o ${{ env.SUPPORT_TOOL }}.zip.sha256
+        gh release --repo embrace-io/action-symbol-upload download ${{ env.SUPPORT_TOOL }} --pattern 'embrace_support-*' --clobber
       shell: bash
 
     - name: Verify and extract embrace_support.zip
-      env:
-        SUPPORT_TOOL: "embrace_support-${{ inputs.tool_version }}"
       run: |
         if /usr/bin/shasum -a 256 -c ${{ env.SUPPORT_TOOL }}.zip.sha256; then
-          unzip ${{ env.SUPPORT_TOOL }}.zip
+          unzip -o ${{ env.SUPPORT_TOOL }}.zip
         else
           echo "Checksum verification failed, aborting."
           exit 1
