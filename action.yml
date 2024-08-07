@@ -49,6 +49,22 @@ runs:
         fi
       shell: bash
 
+    - name: Determine platform and architecture
+      run: |
+        upload_binary=embrace_symbol_upload.$(uname | tr A-Z a-z)
+
+        if [ $(uname) == "Linux" ]; then
+          if [ $(uname -m) == "aarch64" ]; then
+            upload_binary=${upload_binary}-arm64
+          else
+            upload_binary=${upload_binary}-amd64
+          fi
+        fi
+
+        echo "Will use ${upload_binary}"
+        echo "SYMBOL_UPLOAD_BINARY=${upload_binary}" >> $GITHUB_ENV
+      shell: bash
+
     # https://embrace.io/docs/ios/open-source/symbolicating-crash-reports/
     - name: Upload dSYM symbols
       env:
@@ -60,8 +76,8 @@ runs:
       run: |
         for dir in $(find . -type d -name \*.dSYM); do
           for dsym_file in "$dir"/Contents/Resources/DWARF/*; do
-            echo Running ./upload --dsym "$dsym_file"
-            ./upload --dsym "$dsym_file"
+            echo Running ./${SYMBOL_UPLOAD_BINARY} --dsym "$dsym_file"
+            ./${SYMBOL_UPLOAD_BINARY} --dsym "$dsym_file"
           done
         done
       shell: bash
