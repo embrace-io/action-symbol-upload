@@ -41,6 +41,7 @@ jobs:
         with:
           app_id: "${{ vars.EMBRACE_APP_ID }}"
           api_token: "${{ secrets.EMBRACE_API_TOKEN }}"
+          type: "dsym" # or "react-native"
 ```
 
 ## Advanced usage
