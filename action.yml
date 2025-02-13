@@ -14,6 +14,10 @@ inputs:
     description: "Version for embrace_support.zip tool"
     required: false
     default: "latest"
+  type:
+    description: "Type of upload to perform (dsym, react-native)"
+    required: false
+    default: "dsym"
 runs:
   # https://docs.github.com/en/actions/creating-actions/creating-a-composite-action
   using: "composite"
@@ -65,8 +69,7 @@ runs:
         echo "SYMBOL_UPLOAD_BINARY=${upload_binary}" >> $GITHUB_ENV
       shell: bash
 
-    # https://embrace.io/docs/ios/open-source/symbolicating-crash-reports/
-    - name: Upload dSYM symbols
+    - name: Upload symbols
       env:
         EMBRACE_APP: "${{ inputs.app_id }}"
         EMBRACE_API_TOKEN: "${{ inputs.api_token }}"
@@ -74,10 +77,27 @@ runs:
         EMBRACE_LOG_LEVEL: "info"
         BUILD_ROOT: "${{ github.workspace }}"
       run: |
-        for dir in $(find . -type d -name \*.dSYM); do
-          for dsym_file in "$dir"/Contents/Resources/DWARF/*; do
-            echo Running ./${SYMBOL_UPLOAD_BINARY} --dsym "$dsym_file"
-            ./${SYMBOL_UPLOAD_BINARY} --dsym "$dsym_file"
+        # https://embrace.io/docs/ios/open-source/getting-started/symbolicating-crash-reports/
+        if [ '${{ inputs.type }}' == 'dsym' ]; then
+          for dir in $(find . -type d -name \*.dSYM); do
+            echo "Working on ${dir}"
+
+            for dsym_file in "${dir}"/Contents/Resources/DWARF/*; do
+              echo "Running ./${SYMBOL_UPLOAD_BINARY} --dsym ${dsym_file}"
+              ./${SYMBOL_UPLOAD_BINARY} --dsym "${dsym_file}"
+            done
           done
-        done
+        fi
+
+        # https://embrace.io/docs/react-native/integration/upload-symbol-files/
+        if [ '${{ inputs.type }}' == 'react-native' ]; then
+          for bundle in $(find . -type f -name \*.jsbundle -o -name \*.bundle | grep -v intermediates); do
+            echo "Working on ${bundle}"
+            bundle_file=$(basename ${bundle})
+            bundle_map=$(find . -type f -name ${bundle_file}.map)
+
+            echo "Running ./${SYMBOL_UPLOAD_BINARY} --rn-bundle ${bundle} --rn-map ${bundle_map}"
+            ./${SYMBOL_UPLOAD_BINARY} --rn-bundle "${bundle}" --rn-map "${bundle_map}"
+          done
+        fi
       shell: bash
