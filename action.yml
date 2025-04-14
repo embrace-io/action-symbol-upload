@@ -97,6 +97,12 @@ runs:
             bundle_file=$(basename ${bundle})
             bundle_map=$(find . -type f -name ${bundle_file}.map)
 
+            # Skip if no sourcemap file was found
+            if [ -z "$bundle_map" ]; then
+              echo "Skipping on ${bundle} as no sourcemap was found."
+              continue
+            fi
+
             echo "Running ./${SYMBOL_UPLOAD_BINARY} --rn-bundle ${bundle} --rn-map ${bundle_map}"
             ./${SYMBOL_UPLOAD_BINARY} --rn-bundle "${bundle}" --rn-map "${bundle_map}"
           done
