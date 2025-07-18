@@ -1,7 +1,7 @@
 # embrace-io/action-symbol-upload
 
-This action allows uploading of symbol files for your mobile applications to Embrace, as described in
-[Symbolicating Crash Reports](https://embrace.io/docs/ios/open-source/symbolicating-crash-reports/).
+This action allows uploading of iOS or ReactNative symbol files for your mobile applications to Embrace, as described in
+[Symbolicating Crash Reports](https://embrace.io/docs/ios/6x/getting-started/dsym-upload/).
 
 To use, you need to obtain:
 
@@ -14,7 +14,7 @@ or hardcode it in the workflow directly.
 For security reasons, you should store the API key in your repository (or organization) secrets; see [GitHub documentation](https://docs.github.com/en/actions/security-guides/using-secrets-in-github-actions) 
 for detailed information on how to use GitHub Secrets.
 
-Also, make sure you enable dSYM generation as described here: https://embrace.io/docs/ios/faq/#dsym-generation-not-enabled
+Also, make sure you enable dSYM generation in Xcode as described here: https://embrace.io/docs/ios/faq/#dsym-generation-not-enabled
 
 ## Basic usage
 
