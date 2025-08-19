@@ -80,7 +80,7 @@ runs:
       run: |
         # https://embrace.io/docs/ios/open-source/getting-started/symbolicating-crash-reports/
         if [ '${{ inputs.type }}' == 'dsym' ]; then
-          for dir in $(find . -type d -name \*.dSYM); do
+          for dir in $(find . -type d -name \*.dSYM | grep -v __MACOSX); do
             echo "Working on ${dir}"
 
             for dsym_file in "${dir}"/Contents/Resources/DWARF/*; do
