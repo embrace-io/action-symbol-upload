@@ -37,7 +37,7 @@ jobs:
       - run: |
           xcodebuild build ...
 
-      - uses: embrace-io/action-symbol-upload@main
+      - uses: embrace-io/action-symbol-upload@v1
         with:
           app_id: "${{ vars.EMBRACE_APP_ID }}"
           api_token: "${{ secrets.EMBRACE_API_TOKEN }}"
