@@ -28,7 +28,8 @@ runs:
         GH_TOKEN: ${{ github.token }}
       run: |
         if [ '${{ inputs.tool_version }}' == 'latest' ]; then
-          version=$(gh release list --repo embrace-io/action-symbol-upload --json tagName --jq '.[] | select(.tagName | startswith("embrace_support-")) | .tagName' --order desc | head -n 1)
+          gh release list --repo embrace-io/action-symbol-upload --json tagName --jq '.[] | select(.tagName | startswith("embrace_support-")) | .tagName' --order desc > embrace_support_versions.txt
+          version=$(cat embrace_support_versions.txt | head -n 1)
         else
           version='${{ inputs.tool_version }}'
         fi
